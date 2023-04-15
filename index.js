@@ -1,8 +1,16 @@
 const TelegramBot = require('node-telegram-bot-api');
 const mongoose = require('mongoose');
-
+const Promise = require('bluebird');
+  Promise.config({
+    cancellation: true
+  });
 // Replace YOUR_TOKEN with your actual token
+//SmartGrocering
 const bot = new TelegramBot('6060668261:AAHOlu_k-kNYXGN-7Jau8IplMr80fWABIks', { polling: true });
+
+
+//DummyGrocering
+// const bot = new TelegramBot('6088469995:AAFBant4q0b3pEyjb8t8CeCZyGs2oUQPap4', { polling: true });
 
 mongoose.connect('mongodb+srv://node-shop:node-shop@cluster0.giegz.mongodb.net/Smart-Grocering?retryWrites=true&w=majority', {
   useNewUrlParser: true,
