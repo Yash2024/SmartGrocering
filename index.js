@@ -6,7 +6,7 @@ const Promise = require('bluebird');
   });
 // Replace YOUR_TOKEN with your actual token
 //SmartGrocering
-const bot = new TelegramBot('6060668261:AAHOlu_k-kNYXGN-7Jau8IplMr80fWABIks', { polling: true });
+const bot = new TelegramBot('6123908860:AAH-7n75rNzXeG_J1m6TFSjTaREc7ZlfLbU', { polling: true });
 
 
 //DummyGrocering
