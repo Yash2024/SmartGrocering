@@ -157,6 +157,7 @@ bot.onText(/Done/, async (msg)=>{
           await delay(100);
         }
       }
+      await delay(1000);
       if(total===0)
       {
         bot.sendMessage(chatId, 'You have not selected any item to buy please select from menu by typing "Showmenu"');
@@ -167,11 +168,13 @@ bot.onText(/Done/, async (msg)=>{
         if(total>=500)
         {
           bot.sendMessage(chatId, 'Delivery Charges          0/-');
+          await delay(1000);
         }
         else
         {
           bot.sendMessage(chatId, 'Delivery Charges          25/-');
           total+=25;
+          await delay(1000);
         }
         bot.sendMessage(chatId, 'Total Bill          '+total);
         await delay(1000);
