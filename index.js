@@ -6,11 +6,15 @@ const Promise = require('bluebird');
   });
 // Replace YOUR_TOKEN with your actual token
 //SmartGrocering
-const bot = new TelegramBot('6123908860:AAH-7n75rNzXeG_J1m6TFSjTaREc7ZlfLbU', { polling: true });
+// const bot = new TelegramBot('6123908860:AAH-7n75rNzXeG_J1m6TFSjTaREc7ZlfLbU', { polling: true });
+
 
 
 //DummyGrocering
 // const bot = new TelegramBot('6088469995:AAFBant4q0b3pEyjb8t8CeCZyGs2oUQPap4', { polling: true });
+
+//grocerZone
+const bot = new TelegramBot('6111647851:AAFfS7KMfxGUMh_uf_hbMFFuH5mpdkJA-PE', { polling: true });
 
 mongoose.connect('mongodb+srv://node-shop:node-shop@cluster0.giegz.mongodb.net/Smart-Grocering?retryWrites=true&w=majority', {
   useNewUrlParser: true,
