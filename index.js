@@ -340,7 +340,7 @@ bot.onText(/\/Cancel/, async (msg)=>{
         if(x==null)
         {
           bot.sendMessage(chatId,'You have not ordered anything');
-          bot.sendMessage(chatId, 'To place your order either type "/start" or "/howmenu"');
+          bot.sendMessage(chatId, 'To place your order either type "/start" or "/Showmenu"');
         }
         else
         {
