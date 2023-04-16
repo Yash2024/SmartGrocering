@@ -6,7 +6,7 @@ const Promise = require('bluebird');
   });
 // Replace YOUR_TOKEN with your actual token
 //SmartGrocering
-// const bot = new TelegramBot('6123908860:AAH-7n75rNzXeG_J1m6TFSjTaREc7ZlfLbU', { polling: true });
+const bot = new TelegramBot('6123908860:AAH-7n75rNzXeG_J1m6TFSjTaREc7ZlfLbU', { polling: true });
 
 
 
@@ -14,7 +14,7 @@ const Promise = require('bluebird');
 // const bot = new TelegramBot('6088469995:AAFBant4q0b3pEyjb8t8CeCZyGs2oUQPap4', { polling: true });
 
 //grocerZone
-const bot = new TelegramBot('6111647851:AAFfS7KMfxGUMh_uf_hbMFFuH5mpdkJA-PE', { polling: true });
+// const bot = new TelegramBot('6111647851:AAFfS7KMfxGUMh_uf_hbMFFuH5mpdkJA-PE', { polling: true });
 
 mongoose.connect('mongodb+srv://node-shop:node-shop@cluster0.giegz.mongodb.net/Smart-Grocering?retryWrites=true&w=majority', {
   useNewUrlParser: true,
@@ -30,12 +30,12 @@ function delay(ms) {
 // Handle the /start command
 bot.onText(/\/start/, async (msg) => {
   bot.sendMessage(msg.chat.id, 'Welcome to SmartGrocering!');
-  bot.sendMessage(msg.chat.id, 'Type "Showmenu" to display the Grocery Menu');
+  bot.sendMessage(msg.chat.id, 'Type "/Showmenu" to display the Grocery Menu');
   await delay(100);
-  bot.sendMessage(msg.chat.id, 'Type "Offers" to display the Active Offers');
+  bot.sendMessage(msg.chat.id, 'Type "/Offers" to display the Active Offers');
 }); 
 
-bot.onText(/Offers/, (msg) => {
+bot.onText(/\/Offers/, (msg) => {
   const chatId=msg.chat.id;
   bot.sendMessage(chatId,'Get Free Delivery on orders of Rs500 and above')
 })
@@ -47,7 +47,7 @@ const cost=[25,24,85,60,55,455,96,100,105,45,82,135];
 const unit=['kg','kg','kg','kg','kg','kg','kg','kg','kg','kg','kg','L']
 
 
-bot.onText(/Showmenu/, (msg) => {
+bot.onText(/\/Showmenu/, (msg) => {
   const chatId = msg.chat.id;
     const menu = {
       reply_markup: {
@@ -132,8 +132,8 @@ bot.onText(/Add (\d+)/, async (msg, match) => {
       console.log(err);
     })
     
-    bot.sendMessage(chatId, 'Select another Item from the menu above\n or type "Done" if you do not want to add any other item ');
-    bot.sendMessage(chatId, 'If you want to delete any item from your order \n then type "Delete<space><itemname>" \n\nIf you want to cancel your entire order Type "Cancel"');
+    bot.sendMessage(chatId, 'Select another Item from the menu above\n or type "/Done" if you do not want to add any other item ');
+    bot.sendMessage(chatId, 'If you want to delete any item from your order \n then type "Delete<space><itemname>" \n\nIf you want to cancel your entire order Type "/Cancel"');
   }
   
   // reset the data value to null to avoid executing the listener multiple times
@@ -143,7 +143,7 @@ bot.onText(/Add (\d+)/, async (msg, match) => {
 
 
 
-bot.onText(/Done/, async (msg)=>{
+bot.onText(/\/Done/, async (msg)=>{
   const chatId = msg.chat.id;
   let total=Number("0");
   bot.sendMessage(chatId, 'Your Ordered items are');
@@ -154,7 +154,7 @@ bot.onText(/Done/, async (msg)=>{
   .then(async doc=>{
     if(doc.length<1)
     {
-      bot.sendMessage(chatId, 'You have not ordered any item to buy please select from menu by typing "Showmenu"');
+      bot.sendMessage(chatId, 'You have not ordered any item to buy please select from menu by typing "/Showmenu"');
       await delay(1000);
     }
     else
@@ -172,7 +172,7 @@ bot.onText(/Done/, async (msg)=>{
       await delay(1000);
       if(total===0)
       {
-        bot.sendMessage(chatId, 'You have not selected any item to buy please select from menu by typing "Showmenu"');
+        bot.sendMessage(chatId, 'You have not selected any item to buy please select from menu by typing "/Showmenu"');
         await delay(1000);
       }
       else
@@ -191,7 +191,7 @@ bot.onText(/Done/, async (msg)=>{
         bot.sendMessage(chatId, 'Total Bill          '+total);
         await delay(1000);
         
-        bot.sendMessage(chatId, 'If you want to add another item then select it from above menu or type "Showmenu" and then select it" \n\n If you want to delete any item from your order \n then type "Delete<space><itemname>" \n\n If you want to confirm your order write "Confirm<space><Delivery Address>" \n\n Type "Cancel" to cancel your order AFTER CONFIRM YOU CANNOT CANCEL');
+        bot.sendMessage(chatId, 'If you want to add another item then select it from above menu or type "/Showmenu" and then select it" \n\n If you want to delete any item from your order \n then type "Delete<space><itemname>" \n\n If you want to confirm your order write "Confirm<space><Delivery Address>" \n\n Type "/Cancel" to cancel your order AFTER CONFIRM YOU CANNOT CANCEL');
         await delay(1000);
       }
     }
@@ -212,7 +212,7 @@ bot.onText(/Delete (.+)/, async (msg,match)=>{
     .then(async doc=>{
       if(doc.length<1)
       {
-        bot.sendMessage(chatId, 'You have not ordered any item to buy please select from menu by typing "Showmenu"');
+        bot.sendMessage(chatId, 'You have not ordered any item to buy please select from menu by typing "/Showmenu"');
         await delay(1000);
       }
       else
@@ -235,7 +235,7 @@ bot.onText(/Delete (.+)/, async (msg,match)=>{
         }
         else
         {
-          bot.sendMessage(chatId,'Item Deleted Successfully \n Type "Done" to view your bill \n\n If you want to cancel your entire order Type "Cancel"');
+          bot.sendMessage(chatId,'Item Deleted Successfully \n Type "Done" to view your bill \n\n If you want to cancel your entire order Type "/Cancel"');
         }
       }
     })
@@ -265,7 +265,7 @@ bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
     .then(async doc=>{
       if(doc.length<1)
       {
-        bot.sendMessage(chatId, 'You have not ordered any item to buy please select from menu by typing "Showmenu"');
+        bot.sendMessage(chatId, 'You have not ordered any item to buy please select from menu by typing "/Showmenu"');
         await delay(1000);
       }
       else
@@ -286,7 +286,7 @@ bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
 
         if(total===0)
         {
-          bot.sendMessage(chatId, 'You have not selected any item to buy please select from menu by typing "Showmenu"');
+          bot.sendMessage(chatId, 'You have not selected any item to buy please select from menu by typing "/Showmenu"');
           await delay(1000);
         }
         else
@@ -307,6 +307,7 @@ bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
           bot.sendMessage(adminChatId, placeorder);
           await delay(100);
           bot.sendMessage(chatId,'Your order will be delivered to '+address+'\n\n Thank You for ordering from SmartGrocering\n Have a Nice Day');
+          bot.sendMessage(chatId, 'To place your order again either type "/start" or "/Showmenu"');
         }
       }
     })
@@ -316,13 +317,14 @@ bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
    }
 })
 
-bot.onText(/Cancel/, async (msg)=>{
+bot.onText(/\/Cancel/, async (msg)=>{
     const chatId=msg.chat.id;
     Order.find({chat_id:chatId})
     .then(doc=>{
       if(doc.length<1)
       {
         bot.sendMessage(chatId,'You have not ordered anything');
+        bot.sendMessage(chatId, 'To place your order either type "/start" or "/Showmenu"');
       }
       else
       {
@@ -338,11 +340,13 @@ bot.onText(/Cancel/, async (msg)=>{
         if(x==null)
         {
           bot.sendMessage(chatId,'You have not ordered anything');
+          bot.sendMessage(chatId, 'To place your order either type "/start" or "/howmenu"');
         }
         else
         {
           doc[0].save().then().catch();
           bot.sendMessage(chatId,'Your order is cancelled');
+          bot.sendMessage(chatId, 'To place your order again either type "/start" or "/Showmenu"');
         }
       }
     })
