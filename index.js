@@ -1,11 +1,15 @@
 const TelegramBot = require('node-telegram-bot-api');
 const mongoose = require('mongoose');
 const Promise = require('bluebird');
+var express = require('express');
+var app=express()
   Promise.config({
     cancellation: true
   });
 // Replace YOUR_TOKEN with your actual token
 //SmartGrocering
+app.get('/', (req, res) => res.send('Bot is running!!!'));
+
 const bot = new TelegramBot('6123908860:AAH-7n75rNzXeG_J1m6TFSjTaREc7ZlfLbU', { polling: true });
 
 
@@ -22,6 +26,8 @@ mongoose.connect('mongodb+srv://node-shop:node-shop@cluster0.giegz.mongodb.net/S
 });
 
 const Order = require('./models/orders');
+const Placed = require('./models/placed');
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -78,7 +84,7 @@ bot.on('callback_query', async (query) => {
   data = Number(query.data);
   bot.sendMessage(chatId, 'Available ' + item[data] + ': ' + qty[data] + unit[data]);
   await delay(100);
-  bot.sendMessage(chatId, 'Type "Add <quantity>" Quantity of ' + item[data] + ' you want in ' + unit[data]);
+  bot.sendMessage(chatId, 'Type "Add<space><quantity>" Quantity of ' + item[data] + ' you want in ' + unit[data]);
 });
 
 
@@ -95,7 +101,7 @@ bot.onText(/Add (\d+)/, async (msg, match) => {
   // console.log(data);
   if(q>qty[data])
   {
-    bot.sendMessage(chatId, 'please Add below available quantity');
+    bot.sendMessage(chatId, 'please ReSelect the item and Add below available quantity');
   }
   else
   {
@@ -132,7 +138,7 @@ bot.onText(/Add (\d+)/, async (msg, match) => {
       console.log(err);
     })
     
-    bot.sendMessage(chatId, 'Select another Item from the menu above\n or type "/Done" if you do not want to add any other item ');
+    bot.sendMessage(chatId, 'Select another Item from the menu above\n or To move to next step tell if you want delivery or pickup by typing "Delivery<space><yes or no>" ');
     bot.sendMessage(chatId, 'If you want to delete any item from your order \n then type "Delete<space><itemname>" \n\nIf you want to cancel your entire order Type "/Cancel"');
   }
   
@@ -142,14 +148,24 @@ bot.onText(/Add (\d+)/, async (msg, match) => {
 
 
 
+let deliver=null;
+bot.onText(/Delivery yes/, (msg)=>{
+  deliver="yes";
+  const chatId=msg.chat.id;
+  bot.sendMessage(chatId,'Type "/Done" to proceed')
+})
+bot.onText(/Delivery no/, (msg)=>{
+  deliver="no";
+  const chatId=msg.chat.id;
+  bot.sendMessage(chatId,'Type "/Done" to proceed')
+})
+
+
 
 bot.onText(/\/Done/, async (msg)=>{
   const chatId = msg.chat.id;
   let total=Number("0");
-  bot.sendMessage(chatId, 'Your Ordered items are');
-  await delay(1000);
-  bot.sendMessage(chatId,"Item     Ordered Quantity     Cost");
-  await delay(1000);
+  
   Order.find({chat_id:chatId})
   .then(async doc=>{
     if(doc.length<1)
@@ -159,6 +175,10 @@ bot.onText(/\/Done/, async (msg)=>{
     }
     else
     {
+      bot.sendMessage(chatId, 'Your Ordered items are');
+      await delay(1000);
+      bot.sendMessage(chatId,"Item     Ordered Quantity     Cost");
+      await delay(1000);
       const order=doc[0].orderlist;
       for(let i=0;i<12;i++)
       {
@@ -177,21 +197,25 @@ bot.onText(/\/Done/, async (msg)=>{
       }
       else
       {
-        if(total>=500)
+        if(deliver==="yes")
         {
-          bot.sendMessage(chatId, 'Delivery Charges          0/-');
-          await delay(1000);
+          if(total>=500)
+          {
+            bot.sendMessage(chatId, 'Delivery Charges          0/-');
+            await delay(1000);
+          }
+          else
+          {
+            bot.sendMessage(chatId, 'Delivery Charges          25/-');
+            total+=25;
+            await delay(1000);
+          }
         }
-        else
-        {
-          bot.sendMessage(chatId, 'Delivery Charges          25/-');
-          total+=25;
-          await delay(1000);
-        }
+        
         bot.sendMessage(chatId, 'Total Bill          '+total);
         await delay(1000);
         
-        bot.sendMessage(chatId, 'If you want to add another item then select it from above menu or type "/Showmenu" and then select it" \n\n If you want to delete any item from your order \n then type "Delete<space><itemname>" \n\n If you want to confirm your order write "Confirm<space><Delivery Address>" \n\n Type "/Cancel" to cancel your order AFTER CONFIRM YOU CANNOT CANCEL');
+        bot.sendMessage(chatId, 'If you want to add another item then select it from above menu or type "/Showmenu" and then select it" \n\n If you want to delete any item from your order then type "Delete<space><itemname>"\n\n To confirm your order type "Confirm<space><address>"  \n\n Type "/Cancel" to cancel your order AFTER CONFIRM YOU CANNOT CANCEL');
         await delay(1000);
       }
     }
@@ -203,6 +227,8 @@ bot.onText(/\/Done/, async (msg)=>{
   
   
 })
+
+
 
 
 bot.onText(/Delete (.+)/, async (msg,match)=>{
@@ -235,13 +261,18 @@ bot.onText(/Delete (.+)/, async (msg,match)=>{
         }
         else
         {
-          bot.sendMessage(chatId,'Item Deleted Successfully \n Type "Done" to view your bill \n\n If you want to cancel your entire order Type "/Cancel"');
+          bot.sendMessage(chatId,'Item Deleted Successfully \n Type "Done" to view your bill \n\nIf you want to confirm your order write "Confirm<space><Delivery Address>" \n\n If you want to cancel your entire order Type "/Cancel"');
         }
       }
     })
     
     
 })
+
+
+
+
+
 
 
 bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
@@ -270,18 +301,22 @@ bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
       }
       else
       {
+        // const place = new Placed({
+          
+        // })
         const order=doc[0].orderlist;
+        const pord=[0,0,0,0,0,0,0,0,0,0,0,0];
         for(let i=0;i<12;i++)
         {
           if(order[i]!=0)
           {
             placeorder+=item[i]+'      '+order[i]+unit[i]+'                 '+order[i]*cost[i]+'/- \n';
             total+=(order[i]*cost[i]);
+            pord[i]=order[i];
             doc[0].orderlist[i]=0;
             await delay(100);
           }
         }
-
         doc[0].save().then().catch();
 
         if(total===0)
@@ -291,39 +326,87 @@ bot.onText(/Confirm ([A-Za-z]+)/, async (msg,match)=>{
         }
         else
         {
-          if(total>=500)
+          if(deliver==="yes")
           {
-            placeorder+='Delivery Charges          0/- \n';
-            await delay(100);
+              if(total>=500)
+              {
+                placeorder+='Delivery Charges          0/- \n';
+                await delay(100);
+              }
+              else
+              {
+                placeorder+='Delivery Charges          25/- \n';
+                await delay(100);
+                total+=25;
+              }
+          }
+          const ordid=Math.floor(Math.random() * 100001);
+          placeorder+="Total bill       "+total;
+          if(deliver==="yes")
+          {
+            placeorder+="\n Deliver to: "+address+"\n";
           }
           else
           {
-            placeorder+='Delivery Charges          25/- \n';
-            await delay(100);
-            total+=25;
+            placeorder+="\n Pickup"
           }
-          placeorder+="Total bill       "+total+"\n Deliver to: "+address+"\n";
+          placeorder+="\n\n Orderid: "+ordid;
           await delay(100);
           bot.sendMessage(adminChatId, placeorder);
           await delay(100);
-          bot.sendMessage(chatId,'Your order will be delivered to '+address+'\n\n Thank You for ordering from SmartGrocering\n Have a Nice Day');
+          bot.sendMessage(chatId,'OrderId:'+ordid+'\n\n Thank You for ordering from SmartGrocering\n Have a Nice Day');
+          await delay(100);
+          bot.sendMessage(chatId,'To check your order status type Status<space><OrderId>')
+          await delay(100);
           bot.sendMessage(chatId, 'To place your order again either type "/start" or "/Showmenu"');
+          await delay(100);
+          bot.sendMessage(chatId, 'Please provide a feedback to us by typing "Feedback<space><feedback>"');
+          
+          const place=new Placed({
+            _id: new mongoose.Types.ObjectId(),
+            orderid: ordid,
+            orderlist: pord,
+            status: "prepairing Order",
+            chat_id:chatId,
+            address: address,
+            deliver: deliver
+          });
+
+          place.save().then().catch();
+
         }
       }
     })
-    
-    
 
    }
 })
 
+
+bot.onText(/Status (\d+)/, async (msg,match)=>{
+  const ordid=match[1];
+  const chatId=msg.chat.id;
+  Placed.find({orderid:ordid})
+  .then(doc=>{
+    if(doc.length<1)
+    {
+      bot.sendMessage(chatId,'No such Order exists');
+    }
+    else
+    {
+      bot.sendMessage(chatId,'Order'+ordid+'status:'+doc[0].status);
+    }
+  })
+})
+
+
 bot.onText(/\/Cancel/, async (msg)=>{
     const chatId=msg.chat.id;
     Order.find({chat_id:chatId})
-    .then(doc=>{
+    .then(async doc=>{
       if(doc.length<1)
       {
         bot.sendMessage(chatId,'You have not ordered anything');
+        await delay(100);
         bot.sendMessage(chatId, 'To place your order either type "/start" or "/Showmenu"');
       }
       else
@@ -334,20 +417,32 @@ bot.onText(/\/Cancel/, async (msg)=>{
           if(doc[0].orderlist[i]>0)
           {
             x=1;
+            qty[i]+=doc[0].orderlist[i];
             doc[0].orderlist[i]=0;
           }
         }
         if(x==null)
         {
           bot.sendMessage(chatId,'You have not ordered anything');
+          await delay(100);
           bot.sendMessage(chatId, 'To place your order either type "/start" or "/Showmenu"');
         }
         else
         {
           doc[0].save().then().catch();
           bot.sendMessage(chatId,'Your order is cancelled');
+          await delay(100);
           bot.sendMessage(chatId, 'To place your order again either type "/start" or "/Showmenu"');
         }
       }
     })
+})
+
+
+bot.onText(/Feedback ([A-Za-z]+)/, async (msg,match)=>{
+  const chatId = msg.chat.id;
+   const feedback=msg.text.slice(9);
+   const adminChatId = '1404191950';
+   bot.sendMessage(adminChatId,feedback);
+   bot.sendMessage(chatId,'Thank You for sharing the feedback it is highly valueable to us to continue shoping type "/start" or "/Showmenu"')
 })
